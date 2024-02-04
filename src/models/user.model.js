@@ -49,17 +49,19 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
+
+// Note: In callback ()=> cannot be use because arrow function dont have "this" context.
+// Pre hook called just before it getting saved.
 userSchema.pre("save", async function (next) {
+  //bcrypt only when password is changed.
   if (!this.isModified("password")) return next();
 
-  this.password = bcrypt.hash(this.password, 10);
+  this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-//Note: In callback ()=> cannot be use beacuse arrow function dont have "this" context
-
 userSchema.method.isPasswordCorrect = async function (password) {
-  bcrypt.compare(password, this.password);
+  return await bcrypt.compare(password, this.password);
 };
 
 userSchema.method.generateAccessToken = function () {
